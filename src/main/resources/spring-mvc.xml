@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/mvc
+                           http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/aop
+                           https://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--MVC注解驱动-->
+    <!--启用基于注解的MVC控制器-->
+    <mvc:annotation-driven />
+
+    <!--允许Servlet容器处理静态资源请求-->
+    <mvc:default-servlet-handler/>
+
+     <!--注解扫描-->
+     <!-- 扫描com.iflytek包下的组件-->
+    <context:component-scan base-package="com.iflytek"></context:component-scan>
+
+    <!--定义视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/"></property>
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <!--自定义请求映射处理器适配器，包含JSON消息转换器-->
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+
+<!--    <mvc:resources mapping="/js/**" location="/js/"/>-->
+
+    <!--提供日期转换服务-->
+    <bean id="converterService"
+          class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.iflytek.Converter.DateConverter"></bean>
+            </list>
+        </property>
+    </bean>
+
+    <mvc:annotation-driven conversion-service="converterService"/>
+
+    <!--文件上传-->
+    <!-- 配置文件上传解析器，最大上传大小和每文件最大大小都设置为5242800字节（约5MB），默认编码为UTF-8-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="5242800"/>
+        <property name="maxUploadSizePerFile" value="5242800"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+    <!--数据源DataSource-->
+    <!--使用c3p0连接池配置数据源，属性值从jdbc.properties文件读取-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"></property>
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="user" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+<!--    jdbcTemplate-->
+    <!-- 创建一个JdbcTemplate实例，使用上述的数据源-->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!--拦截器-->
+    <!--定义拦截器，用于登录状态检查，排除/student/login和/student/register路径-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/student/login"/>
+            <mvc:exclude-mapping path="/student/register"/>
+            <bean class="com.iflytek.interceptor.LoginInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!--基础包扫描-->
+    <!--加载jdbc.properties文件中的属性值-->
+    <context:component-scan base-package="com.iflytek"></context:component-scan>
+
+    <!--数据源配置-->
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+
+
+    <!--统一异常处理-->
+    <bean class="com.iflytek.exception.resolver.MyExceptionResolver"/>
+
+    <!--aop-->
+    <bean id="myAspect" class="com.iflytek.aop.MyAspect"></bean>
+
+    <!--定义切面MyAspect，在com.iflytek.service.impl包下所有类的方法调用前执行before方法-->
+    <aop:config>
+        <aop:aspect ref="myAspect">
+            <aop:before method="before" pointcut="execution( * com.iflytek.service.impl..*.*(..))"></aop:before>
+        </aop:aspect>
+    </aop:config>
+
+    <!--    平台事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!--    事务增强配置-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+</beans>

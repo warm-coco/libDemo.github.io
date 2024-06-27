@@ -1,0 +1,28 @@
+button{
+    margin: 15px 10px;
+    background-color: antiquewhite;
+    height: 40px;
+    width: 80px;
+    font-size: 18px;
+    border-radius: 10px;
+}
+button:hover{
+    background-color: #00ff55;
+}
+
+.table_box{
+    margin: 30px auto;
+    width: 80%;
+}
+.table_header td{
+    padding: 10px 10px;
+    color: rgb(70,167,159);
+    font-size: 1.1em;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #CBD6DE;
+}
+.table_row td{
+    padding: 5px 10px;
+    border: 1px solid #CBD6DE;
+}

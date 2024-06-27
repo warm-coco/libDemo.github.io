@@ -1,0 +1,33 @@
+
+.wrap{
+    width: 400px ;
+    background-color: aquamarine;
+    border: 1px solid dodgerblue;
+    border-radius: 20px;
+    margin: 150px auto;
+    padding: 5px 25px;
+    font-size: 18px;
+}
+
+.from-left{
+    width: 30%;
+    text-align: right;
+}
+
+.from-right{
+    width: 55%;
+    height: 30px;
+    margin: 10px auto;
+    padding-left: 15px;
+    border-radius: 10px;
+    font-size: 10px;
+}
+
+.form-btn{
+    margin: 10px auto;
+    background-color:azure;
+    height: 35px;
+    width: 60px;
+    font-size: 15px;
+    border-radius: 10px;
+}
